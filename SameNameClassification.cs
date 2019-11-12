@@ -9,8 +9,10 @@ namespace sameNameClassification
 {
     class Program
     {
-        private void CreateSubDir(int num, string savePath)
+        private List<string> CreateSubDir(int num, string savePath)
         {
+            List<string> subDirNameList = new List<string>();
+
             for (int i = 0; i < num; i++)
             {
                 int j = i + 1;
@@ -20,13 +22,31 @@ namespace sameNameClassification
                 if(subDir.Exists == false)
                 {
                     subDir.Create();
+                    subDirNameList.Add(subDir.FullName);
                 }
             }
+
+            return subDirNameList;
         }
 
-        private void MoveFile(string path)
+        private void MoveFile(string path, List<string> list)
         {
+            string[] savePathArr = list.ToArray();
 
+            foreach (string dirPath in GetSubDirList(path))
+            {
+                int i = 0;
+                System.IO.DirectoryInfo dir = new System.IO.DirectoryInfo(dirPath);
+                foreach (System.IO.FileInfo file in dir.GetFiles())
+                {
+                    if (file.Name != "Thumbs.db")
+                    {
+                        string savePath = savePathArr[i] + @"\" + file.Name;
+                        System.IO.File.Move(file.FullName, savePath);
+                        i++;
+                    }
+                }
+            }
         }
 
         private int GetDirFileNum(string path)
@@ -118,15 +138,14 @@ namespace sameNameClassification
         {
             Program p = new Program();
 
-            string savePath = @"C:\Users\sualab\Desktop\mv 팀\정렬";
-            string dirPath = @"C:\Users\sualab\Desktop\mv 팀\00_RawData";
+            string savePath = @"";
+            string dirPath = @"";
 
             // Available in the same number of subdirectories and in the same order.
             if (p.CheckSubDirFileNum(p.GetSubDirList(dirPath)))
             {
-
-                p.CreateSubDir(p.GetCreateFileNum(dirPath), savePath);
-
+                List<string> subDirList = p.CreateSubDir(p.GetCreateFileNum(dirPath), savePath);
+                p.MoveFile(dirPath, subDirList);
             }
             else
             {
